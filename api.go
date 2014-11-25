@@ -1,7 +1,6 @@
 package placer
 
 import (
-	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
@@ -11,27 +10,26 @@ const OneMileRadius = 1609.34
 
 var ErrNoResults = errors.New("No results found")
 
-func FetchEndpoint(endpoint RequestEndpoint) (*Response, error) {
+func Fetch(endpoint Endpoint) error {
 	url, err := endpoint.Url()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	response := new(Response)
-	err = json.Unmarshal(body, response)
+	err = endpoint.UnmarshalJSON(body)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if len(response.Results) == 0 {
-		return nil, ErrNoResults
+	if endpoint.ResultLen() == 0 {
+		return ErrNoResults
 	}
-	return response, nil
+	return nil
 }

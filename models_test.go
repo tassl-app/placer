@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const exampleResponseJSON = `
+const searchJSON = `
 	{
 	   "html_attributions" : [],
 	   "results" : [
@@ -125,9 +125,102 @@ const exampleResponseJSON = `
 	}
 `
 
-var exampleResponse = &Response{
-	Results: []Result{
-		Result{
+const autocompleteJSON = `
+	{
+	  "status": "OK",
+	  "predictions" : [
+	      {
+	         "description" : "Paris, France",
+	         "id" : "691b237b0322f28988f3ce03e321ff72a12167fd",
+	         "matched_substrings" : [
+	            {
+	               "length" : 5,
+	               "offset" : 0
+	            }
+	         ],
+	         "place_id" : "ChIJD7fiBh9u5kcRYJSMaMOCCwQ",
+	         "reference" : "CjQlAAAA_KB6EEceSTfkteSSF6U0pvumHCoLUboRcDlAH05N1pZJLmOQbYmboEi0SwXBSoI2EhAhj249tFDCVh4R-PXZkPK8GhTBmp_6_lWljaf1joVs1SH2ttB_tw",
+	         "terms" : [
+	            {
+	               "offset" : 0,
+	               "value" : "Paris"
+	            },
+	            {
+	               "offset" : 7,
+	               "value" : "France"
+	            }
+	         ],
+	         "types" : [ "locality", "political", "geocode" ]
+	      },
+	      {
+	         "description" : "Paris Avenue, Earlwood, New South Wales, Australia",
+	         "id" : "359a75f8beff14b1c94f3d42c2aabfac2afbabad",
+	         "matched_substrings" : [
+	            {
+	               "length" : 5,
+	               "offset" : 0
+	            }
+	         ],
+	         "place_id" : "ChIJrU3KAHG6EmsR5Uwfrk7azrI",
+	         "reference" : "CkQ2AAAARbzLE-tsSQPgwv8JKBaVtbjY48kInQo9tny0k07FOYb3Z_z_yDTFhQB_Ehpu-IKhvj8Msdb1rJlX7xMr9kfOVRIQVuL4tOtx9L7U8pC0Zx5bLBoUTFbw9R2lTn_EuBayhDvugt8T0Oo",
+	         "terms" : [
+	            {
+	               "offset" : 0,
+	               "value" : "Paris Avenue"
+	            },
+	            {
+	               "offset" : 14,
+	               "value" : "Earlwood"
+	            },
+	            {
+	               "offset" : 24,
+	               "value" : "New South Wales"
+	            },
+	            {
+	               "offset" : 41,
+	               "value" : "Australia"
+	            }
+	         ],
+	         "types" : [ "route", "geocode" ]
+	      },
+	      {
+	         "description" : "Paris Street, Carlton, New South Wales, Australia",
+	         "id" : "bee539812eeda477dad282bcc8310758fb31d64d",
+	         "matched_substrings" : [
+	            {
+	               "length" : 5,
+	               "offset" : 0
+	            }
+	         ],
+	         "place_id" : "ChIJCfeffMi5EmsRp7ykjcnb3VY",
+	         "reference" : "CkQ1AAAAAERlxMXkaNPLDxUJFLm4xkzX_h8I49HvGPvmtZjlYSVWp9yUhQSwfsdveHV0yhzYki3nguTBTVX2NzmJDukq9RIQNcoFTuz642b4LIzmLgcr5RoUrZhuNqnFHegHsAjtoUUjmhy4_rA",
+	         "terms" : [
+	            {
+	               "offset" : 0,
+	               "value" : "Paris Street"
+	            },
+	            {
+	               "offset" : 14,
+	               "value" : "Carlton"
+	            },
+	            {
+	               "offset" : 23,
+	               "value" : "New South Wales"
+	            },
+	            {
+	               "offset" : 40,
+	               "value" : "Australia"
+	            }
+	         ],
+	         "types" : [ "route", "geocode" ]
+	      }
+	  ]
+	}
+`
+
+var exampleSearchResponse = &SearchResponse{
+	Results: []SearchResult{
+		SearchResult{
 			Geometry: Geometry{
 				Location: Location{
 					Latitude:  -33.870775,
@@ -162,14 +255,47 @@ var exampleResponse = &Response{
 	Status: "OK",
 }
 
-func TestResponse(t *testing.T) {
-	v := new(Response)
-	err := json.Unmarshal([]byte(exampleResponseJSON), v)
+var exampleAutocompleteResponse = &AutocompleteResponse{
+	Predictions: []Prediction{
+		Prediction{
+			Description: "Paris, France",
+			Id:          "691b237b0322f28988f3ce03e321ff72a12167fd",
+			MatchedSubstrings: []MatchedSubstring{
+				MatchedSubstring{
+					Length: 5,
+					Offset: 0,
+				},
+			},
+			PlaceId:   "ChIJD7fiBh9u5kcRYJSMaMOCCwQ",
+			Reference: "CjQlAAAA_KB6EEceSTfkteSSF6U0pvumHCoLUboRcDlAH05N1pZJLmOQbYmboEi0SwXBSoI2EhAhj249tFDCVh4R-PXZkPK8GhTBmp_6_lWljaf1joVs1SH2ttB_tw",
+			Terms: []Term{
+				Term{
+					Offset: 0,
+					Value:  "Paris",
+				},
+				Term{
+					Offset: 7,
+					Value:  "France",
+				},
+			},
+			Types: []string{
+				"locality",
+				"political",
+				"geocode",
+			},
+		},
+	},
+	Status: "OK",
+}
+
+func TestSearchResponse(t *testing.T) {
+	v := new(SearchResponse)
+	err := json.Unmarshal([]byte(searchJSON), v)
 	if err != nil {
 		t.Errorf("Could not unmarshal example JSON\n%s\n", err.Error())
 		return
 	}
-	eResults := exampleResponse.Results[0]
+	eResults := exampleSearchResponse.Results[0]
 	fResults := v.Results[0]
 	eLat := eResults.Geometry.Location.Latitude
 	fLat := fResults.Geometry.Location.Latitude
@@ -242,5 +368,44 @@ func TestResponse(t *testing.T) {
 	fVicinity := fResults.Vicinity
 	if eVicinity != fVicinity {
 		t.Errorf("Inconsistent Vicinities. Expected %s, found %s\n", eVicinity, fVicinity)
+	}
+}
+
+func TestAutocompleteResponse(t *testing.T) {
+	v := new(AutocompleteResponse)
+	err := json.Unmarshal([]byte(autocompleteJSON), v)
+	if err != nil {
+		t.Errorf("Could not unmarshal example JSON\n%s\n", err.Error())
+		return
+	}
+	ePrediction := exampleAutocompleteResponse.Predictions[0]
+	fPrediction := v.Predictions[0]
+	if ePrediction.Description != fPrediction.Description {
+		t.Errorf("Inconsistent descriptions. Expected %s, found %s\n", ePrediction.Description, fPrediction.Description)
+		return
+	}
+	if ePrediction.Id != fPrediction.Id {
+		t.Errorf("%s != %s\n", ePrediction.Id, fPrediction.Id)
+		return
+	}
+	if len(ePrediction.MatchedSubstrings) != len(fPrediction.MatchedSubstrings) {
+		t.Errorf("%d != %d\n", len(ePrediction.MatchedSubstrings), len(fPrediction.MatchedSubstrings))
+		return
+	}
+	if ePrediction.PlaceId != fPrediction.PlaceId {
+		t.Errorf("%s != %s\n", ePrediction.PlaceId, fPrediction.PlaceId)
+		return
+	}
+	if ePrediction.Reference != fPrediction.Reference {
+		t.Errorf("%s != %s\n", ePrediction.Reference, fPrediction.Reference)
+		return
+	}
+	if len(ePrediction.Terms) != len(fPrediction.Terms) {
+		t.Errorf("%d != %d\n", len(ePrediction.Terms), len(fPrediction.Terms))
+		return
+	}
+	if len(ePrediction.Types) != len(fPrediction.Types) {
+		t.Errorf("%d != %d\n", len(ePrediction.Types), len(fPrediction.Types))
+		return
 	}
 }
