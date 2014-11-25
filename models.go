@@ -17,7 +17,7 @@ type NearbySearchRequest struct {
 	// Required
 	Key      string
 	Location Location
-	Radius   int64
+	Radius   float64
 	// Optional
 	Keyword       string
 	Language      string
@@ -33,7 +33,7 @@ type NearbySearchRequest struct {
 	Pagetoken     string
 }
 
-func NewNearbySearchRequest(key string, lat, lng float64, radius int64) *NearbySearchRequest {
+func NewNearbySearchRequest(key string, lat, lng, radius float64) *NearbySearchRequest {
 	return &NearbySearchRequest{
 		Key: key,
 		Location: Location{
@@ -52,7 +52,7 @@ func (ns *NearbySearchRequest) Url() (string, error) {
 	q := u.Query()
 	q.Set("key", ns.Key)
 	q.Set("location", ns.Location.Formatted())
-	q.Set("radius", strconv.Itoa(int(ns.Radius)))
+	q.Set("radius", fmt.Sprintf("%f", ns.Radius))
 	if len(ns.Keyword) > 0 {
 		q.Set("keyword", ns.Keyword)
 	}
