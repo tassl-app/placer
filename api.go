@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+const OneMileRadius = 1609.34
+
 func FetchEndpoint(endpoint RequestEndpoint) (*Response, error) {
 	url, err := endpoint.Url()
 	if err != nil {
