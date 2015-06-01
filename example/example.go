@@ -39,4 +39,15 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 	log.Println(string(b))
+	log.Println("Testing places id")
+	pde := placer.NewPlaceDetailsEndpoint(*keyFlag, "ChIJX7DRghfGxokRAyaNmdr9fY8")
+	err = pde.Fetch()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	b, err = json.MarshalIndent(pde.Response, "", "  ")
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	log.Println(string(b))
 }

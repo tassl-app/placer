@@ -18,6 +18,7 @@ type Endpoint interface {
 const (
 	nearbySearchBase = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
 	autocompleteBase = "https://maps.googleapis.com/maps/api/place/autocomplete/json"
+	placeDetailsBase = "https://maps.googleapis.com/maps/api/place/details/json"
 )
 
 type NearbySearchEndpoint struct {
@@ -278,4 +279,167 @@ type MatchedSubstring struct {
 type Term struct {
 	Offset int64  `json:"offset"`
 	Value  string `json:"value"`
+}
+
+type PlaceDetailsEndpoint struct {
+	Request  *PlaceDetailsRequest
+	Response *PlaceDetailsResponse
+}
+
+func NewPlaceDetailsEndpoint(key, placeId string) *PlaceDetailsEndpoint {
+	request := &PlaceDetailsRequest{
+		PlaceId: placeId,
+		Key:     key,
+	}
+	return &PlaceDetailsEndpoint{
+		Request: request,
+	}
+}
+
+func (e *PlaceDetailsEndpoint) Url() (string, error) {
+	u, err := url.Parse(placeDetailsBase)
+	if err != nil {
+		return "", err
+	}
+	q := u.Query()
+	req := e.Request
+	q.Set("placeid", req.PlaceId)
+	q.Set("key", req.Key)
+	u.RawQuery = q.Encode()
+	return u.String(), nil
+}
+
+func (e *PlaceDetailsEndpoint) Fetch() error {
+	return Fetch(e)
+}
+
+func (e *PlaceDetailsEndpoint) UnmarshalJSON(data []byte) error {
+	resp := new(PlaceDetailsResponse)
+	err := json.Unmarshal(data, resp)
+	if err != nil {
+		return err
+	}
+	e.Response = resp
+	return nil
+}
+
+func (e *PlaceDetailsEndpoint) ResultLen() int {
+	if e.Response.Result != nil {
+		return 1
+	}
+	return 0
+}
+
+const ReviewSummaryExtension = "review_summary"
+
+type PlaceDetailsRequest struct {
+	// Required
+	PlaceId string
+	Key     string
+	// Optional
+	// Extensions []string
+	// Language string
+}
+
+type PlaceDetailsResponse struct {
+	HtmlAttributions []string            `json:"html_attributions"`
+	Result           *PlaceDetailsResult `json:"result"`
+	Status           string              `json:"status"`
+}
+
+type PlaceDetailsResult struct {
+	AddressComponents        []*AddressComponent `json:"address_components"`
+	FormattedAddress         string              `json:"formatted_address"`
+	FormattedPhoneNumber     string              `json:"formatted_phone_number"`
+	Geometry                 Geometry            `json:"geometry"`
+	Icon                     string              `json:"icon"`
+	Id                       string              `json:"id"`
+	InternationalPhoneNumber string              `json:"international_phone_number"`
+	Name                     string              `json:"name"`
+	PlaceId                  string              `json:"place_id"`
+	Scope                    string              `json:"scope"`
+	AltIds                   []AltId             `json:"alt_ids"`
+	Rating                   float64             `json:"rating"`
+	Reference                string              `json:"reference"`
+	Types                    []string            `json:"types"`
+	Url                      string              `json:"url"`
+	Vicinity                 string              `json:"vicinity"`
+	Website                  string              `json:"website"`
+}
+
+func (r *PlaceDetailsResult) StreetNumber() *AddressComponent {
+	for _, ac := range r.AddressComponents {
+		for _, t := range ac.Types {
+			if t == "street_number" {
+				return ac
+			}
+		}
+	}
+	return nil
+}
+
+func (r *PlaceDetailsResult) Route() *AddressComponent {
+	for _, ac := range r.AddressComponents {
+		for _, t := range ac.Types {
+			if t == "route" {
+				return ac
+			}
+		}
+	}
+	return nil
+}
+
+func (r *PlaceDetailsResult) City() *AddressComponent {
+	for _, ac := range r.AddressComponents {
+		for _, t := range ac.Types {
+			if t == "locality" {
+				return ac
+			}
+		}
+	}
+	return nil
+}
+
+func (r *PlaceDetailsResult) State() *AddressComponent {
+	for _, ac := range r.AddressComponents {
+		for _, t := range ac.Types {
+			if t == "administrative_area_level_1" {
+				return ac
+			}
+		}
+	}
+	return nil
+}
+
+func (r *PlaceDetailsResult) Country() *AddressComponent {
+	for _, ac := range r.AddressComponents {
+		for _, t := range ac.Types {
+			if t == "country" {
+				return ac
+			}
+		}
+	}
+	return nil
+}
+
+func (r *PlaceDetailsResult) PostalCode() *AddressComponent {
+	for _, ac := range r.AddressComponents {
+		for _, t := range ac.Types {
+			if t == "postal_code" {
+				return ac
+			}
+		}
+	}
+	return nil
+}
+
+type AddressComponent struct {
+	LongName  string   `json:"long_name"`
+	ShortName string   `json:"short_name"`
+	Types     []string `json:"types"`
+}
+
+type AltId struct {
+	PlaceId string `json:"place_id"`
+	Scope   string `json:"scope"`
 }

@@ -3,6 +3,7 @@ package placer
 import (
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -12,6 +13,7 @@ var ErrNoResults = errors.New("No results found")
 
 func Fetch(endpoint Endpoint) error {
 	url, err := endpoint.Url()
+	log.Printf("url: %+v\n", url)
 	if err != nil {
 		return err
 	}
