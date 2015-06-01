@@ -35,3 +35,29 @@ func Fetch(endpoint Endpoint) error {
 	}
 	return nil
 }
+
+type PlacesAPIManager struct {
+	Key string
+}
+
+func NewPlacesAPIManager(key string) *PlacesAPIManager {
+	return &PlacesAPIManager{key}
+}
+
+func (m *PlacesAPIManager) NearbySearch(lat, lng, radius float64) (*SearchResponse, error) {
+	endpoint := NewNearbySearchEndpoint(m.Key, lat, lng, radius)
+	err := endpoint.Fetch()
+	return endpoint.Response, err
+}
+
+func (m *PlacesAPIManager) Autocomplete(input string, offset int64, lat, lng, radius float64, language, types, components string) (*AutocompleteResponse, error) {
+	endpoint := NewAutocompleteEndpoint(m.Key, input, lat, lng, radius)
+	err := endpoint.Fetch()
+	return endpoint.Response, err
+}
+
+func (m *PlacesAPIManager) PlaceDetails(placeId string) (*PlaceDetailsResponse, error) {
+	endpoint := NewPlaceDetailsEndpoint(m.Key, placeId)
+	err := endpoint.Fetch()
+	return endpoint.Response, err
+}
